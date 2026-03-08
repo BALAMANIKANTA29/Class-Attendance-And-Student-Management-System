@@ -29,7 +29,7 @@ export const LoginView = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen font-['Inter'] relative overflow-hidden bg-gray-50 flex items-center justify-center p-4">
+    <div className="min-h-screen font-['Times_New_Roman',_serif] relative overflow-hidden bg-gray-50 flex items-center justify-center p-4">
       {/* Animated Background Orbs - Green Tones */}
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-emerald-100/50 rounded-full blur-[120px] animate-pulse"></div>
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-green-100/50 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }}></div>
@@ -108,8 +108,8 @@ export const LoginView = ({ onLogin }) => {
             onClick={handleLogin}
             disabled={!adminId || !adminPassword || isLoading}
             className={`w-full py-4 rounded-xl font-bold text-lg transition-all duration-500 flex items-center justify-center gap-3 relative overflow-hidden group ${adminId && adminPassword && !isLoading
-                ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/40 hover:-translate-y-0.5 active:translate-y-0'
-                : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
+              ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-xl shadow-emerald-600/20 hover:shadow-emerald-600/40 hover:-translate-y-0.5 active:translate-y-0'
+              : 'bg-gray-100 text-gray-400 cursor-not-allowed border border-gray-200'
               }`}
           >
             {isLoading ? (

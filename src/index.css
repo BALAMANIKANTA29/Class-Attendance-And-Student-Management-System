@@ -13,22 +13,32 @@ html {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family: 'Times New Roman', Times, serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 /* Modern Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideInFromTop {
-  from { transform: translateY(-0.5rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(-0.5rem);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .animate-in {
@@ -46,56 +56,57 @@ body {
 
 /* Print Styles */
 @media print {
-    /* Hide non-printable UI elements */
-    header,
-    nav,
-    .print\:hidden {
-      display: none !important;
-    }
 
-    @page {
-      margin: 0.5cm;
-      size: A4;
-    }
+  /* Hide non-printable UI elements */
+  header,
+  nav,
+  .print\:hidden {
+    display: none !important;
+  }
 
-    body {
-      margin: 0;
-      padding: 0;
-    }
+  @page {
+    margin: 0.5cm;
+    size: A4;
+  }
 
-    .print-container {
-      display: block !important;
-      width: 100%;
-      padding: 20px;
-      background: #fff;
-      color: #000;
-    }
+  body {
+    margin: 0;
+    padding: 0;
+  }
 
-    .print-container * {
-      color: #000 !important;
-      background: #fff !important;
-      box-shadow: none !important;
-      text-shadow: none !important;
-      page-break-inside: avoid;
-    }
+  .print-container {
+    display: block !important;
+    width: 100%;
+    padding: 20px;
+    background: #fff;
+    color: #000;
+  }
 
-    table {
-      border-collapse: collapse;
-      width: 100% !important;
-    }
+  .print-container * {
+    color: #000 !important;
+    background: #fff !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+    page-break-inside: avoid;
+  }
 
-    th,
-    td {
-      border: 1px solid #999;
-      padding: 8px;
-      text-align: left;
-    }
+  table {
+    border-collapse: collapse;
+    width: 100% !important;
+  }
 
-    thead {
-      background: #f0f0f0 !important;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
+  th,
+  td {
+    border: 1px solid #999;
+    padding: 8px;
+    text-align: left;
+  }
+
+  thead {
+    background: #f0f0f0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
 
 /* Smooth transitions */
