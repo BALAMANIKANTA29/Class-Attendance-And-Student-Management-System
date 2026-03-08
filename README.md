@@ -24,10 +24,13 @@ A comprehensive, responsive web application for managing student attendance reco
 - **Dept Summary**: Automatic calculation of present/absent statistics for department records.
 
 ### 🔐 Secure Access
+- **Premium Login UI**: Redesigned entry portal featuring a modern **White & Emerald Green** "Glassmorphism" theme.
+- **Micro-Animations**: Smooth fade-ins and slide-up effects for a state-of-the-art user experience.
 - **Admin Authentication**: Protected access with specific credentials (ID: k12AIDHA).
 - **Session Management**: Secure logout and persistent session handling.
 
 ### 💾 Data Integrity
+- **Modern Typography**: Integrated **Inter** Google Font for superior readability and professionalism.
 - **Local Persistence**: All data is saved to browser storage (LocalStorage), ensuring no data loss on page refresh.
 - **Reactive UI**: State-of-the-art UI updates instantly as you modify records.
 
@@ -86,5 +89,5 @@ To access the management tools, use the following credentials:
 
 ---
 
-Developed for **K12AIDHA** | Branch: **AID** | CTPO: **Mr. G. Rajendra Babu**
+
 
