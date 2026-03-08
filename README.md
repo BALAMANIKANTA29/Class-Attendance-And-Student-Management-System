@@ -86,5 +86,5 @@ To access the management tools, use the following credentials:
 
 ---
 
-Developed for **K12AIDHA** | Branch: **AID** | CTPO: **Mr. G. Rajendra Babu**
+
 
