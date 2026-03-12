@@ -20,7 +20,9 @@ A comprehensive, responsive web application for managing student attendance reco
 - **Report Retrieval**: Instant access to previously submitted attendance sheets.
 
 ### 🖨️ Professional Reporting
-- **Print-Ready Reports**: High-quality formatted attendance sheets ready for printing or PDF export.
+- **Optimized PDF Export**: Advanced print engine logic ensures reports start on the first page without empty space.
+- **Natural Pagination**: Large attendance sheets automatically flow across pages with persistent headers.
+- **Clean Layout**: Automatically hides non-printable UI elements (navbars, buttons) for a professional look.
 - **Dept Summary**: Automatic calculation of present/absent statistics for department records.
 
 ### 🔐 Secure Access
@@ -30,7 +32,7 @@ A comprehensive, responsive web application for managing student attendance reco
 - **Session Management**: Secure logout and persistent session handling.
 
 ### 💾 Data Integrity
-- **Modern Typography**: Integrated **Inter** Google Font for superior readability and professionalism.
+- **Traditional Typography**: Integrated **Times New Roman** for maximum professionalism and clarity in official records.
 - **Local Persistence**: All data is saved to browser storage (LocalStorage), ensuring no data loss on page refresh.
 - **Reactive UI**: State-of-the-art UI updates instantly as you modify records.
 

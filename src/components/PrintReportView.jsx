@@ -18,9 +18,9 @@ export const PrintReportView = ({ reportData, onNewMarking }) => {
 
   return (
     <div className="space-y-4 p-2 md:p-4 print:space-y-0 print:p-0 print-container">
-      <div className="bg-white rounded-xl shadow-2xl p-4 print:shadow-none print:rounded-none print:p-0 print:page-break-inside-avoid">
+      <div className="bg-white rounded-xl shadow-2xl p-4 print:shadow-none print:rounded-none print:p-0">
         {/* Compact Header for Print */}
-        <div className="print:flex print:justify-between print:items-center print:mb-1 print:border-b print:border-gray-300 print:pb-1 print:page-break-inside-avoid">
+        <div className="print:flex print:justify-between print:items-center print:mb-1 print:border-b print:border-gray-300 print:pb-1">
           <h2 className="text-2xl font-extrabold text-gray-900 flex items-center mb-1 print:text-sm print:mb-0 print:flex-shrink-0">
             <Printer className="w-5 h-5 mr-2 text-pink-600 print:w-3 print:h-3 print:mr-1" /> Attendance Report - {new Date(reportData.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
           </h2>
@@ -66,7 +66,7 @@ export const PrintReportView = ({ reportData, onNewMarking }) => {
         </div>
 
         {/* Attendance Table */}
-        <div className="border border-gray-200 rounded-lg overflow-hidden print:border-none print:mt-1">
+        <div className="border border-gray-200 rounded-lg overflow-hidden print:border-none print:mt-2 print:overflow-visible print:block">
           <table className="min-w-full divide-y divide-gray-200 print:text-xs">
             <thead className="bg-gray-50 print:bg-white">
               <tr>
@@ -81,11 +81,10 @@ export const PrintReportView = ({ reportData, onNewMarking }) => {
                   <td className="px-2 py-1 whitespace-nowrap text-xs text-gray-500 print:px-1 print:py-0.5">{student.id}</td>
                   <td className="px-2 py-1 whitespace-nowrap text-xs font-medium text-gray-900 print:px-1 print:py-0.5">{student.name}</td>
                   <td className="px-2 py-1 whitespace-nowrap text-right text-xs print:px-1 print:py-0.5">
-                    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${
-                      student.status === 'Present'
-                        ? 'bg-green-100 text-green-800'
-                        : 'bg-red-100 text-red-800'
-                    } print:px-1 print:py-0.5 print:text-xs`}>
+                    <span className={`px-2 py-0.5 text-xs font-semibold rounded-full ${student.status === 'Present'
+                      ? 'bg-green-100 text-green-800'
+                      : 'bg-red-100 text-red-800'
+                      } print:px-1 print:py-0.5 print:text-xs`}>
                       {student.status.toUpperCase()}
                     </span>
                   </td>
