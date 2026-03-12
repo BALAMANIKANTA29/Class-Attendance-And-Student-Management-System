@@ -94,6 +94,35 @@ const App = () => {
     mockClassStudents.map(s => ({ ...s, status: null }))
   );
 
+  React.useEffect(() => {
+    // If local storage 'students' is missing backlog properties due to previous reverts, sync them from mock data
+    setStudents(prev => {
+      let changed = false;
+      const merged = prev.map(s => {
+        const mockS = mockClassStudents.find(m => m.id === s.id);
+        if (!mockS) return s;
+
+        const updated = { ...s };
+        // Sync backlogCount if undefined or 0 (assuming mock data has backlogs)
+        if (!updated.backlogCount && mockS.backlogCount) {
+            updated.backlogCount = mockS.backlogCount;
+            changed = true;
+        }
+
+        // Sync sem properties
+        const sems = ['s11', 's12', 's21', 's22', 's31'];
+        for (const sem of sems) {
+            if (!updated[sem] && mockS[sem]) {
+                updated[sem] = mockS[sem];
+                changed = true;
+            }
+        }
+        return updated;
+      });
+      return changed ? merged : prev;
+    });
+  }, []);
+
   const [attendanceHistory, setAttendanceHistory] = useLocalStorage('attendanceHistory', {});
   const [lastSubmittedReport, setLastSubmittedReport] = useLocalStorage('lastSubmittedReport', null);
 

@@ -300,6 +300,20 @@ export const BacklogsView = ({ students, setStudents, semesters: propSemesters, 
     const studentsWithBacklogs = students.filter((s) => (s.backlogCount ?? 0) > 0).length;
     const clearStudents = students.filter((s) => (s.backlogCount ?? 0) === 0).length;
 
+    const backlogBreakdown = useMemo(() => {
+        const breakdownMap = students.reduce((acc, s) => {
+            const bc = s.backlogCount ?? 0;
+            if (bc > 0) {
+                acc[bc] = (acc[bc] || 0) + 1;
+            }
+            return acc;
+        }, {});
+
+        return Object.entries(breakdownMap)
+            .map(([backlogs, members]) => ({ backlogs: parseInt(backlogs), members }))
+            .sort((a, b) => a.backlogs - b.backlogs);
+    }, [students]);
+
     const handleSaveEdit = (updated) => {
         if (setStudents) {
             setStudents(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
@@ -416,6 +430,31 @@ export const BacklogsView = ({ students, setStudents, semesters: propSemesters, 
                     </div>
                 </div>
             </div>
+
+            {/* Backlog Breakdown Details */}
+            {backlogBreakdown.length > 0 && (
+                <div className="bg-white rounded-xl shadow p-5">
+                    <h3 className="text-sm font-semibold text-gray-700 flex items-center gap-2 mb-3">
+                        <BookOpen className="w-4 h-4 text-indigo-500" />
+                        Backlog Distribution Breakdown
+                    </h3>
+                    <div className="flex flex-wrap gap-3">
+                        {backlogBreakdown.map(({ backlogs, members }) => (
+                            <div key={backlogs} className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 flex items-center gap-2 shadow-sm">
+                                <span className="font-bold text-indigo-700">{backlogs}</span>
+                                <span className="text-xs text-indigo-500 font-medium whitespace-nowrap">
+                                    {backlogs === 1 ? 'Backlog' : 'Backlogs'}
+                                </span>
+                                <span className="w-2 flex justify-center text-indigo-300 font-bold">:</span>
+                                <span className="font-bold text-gray-800">{members}</span>
+                                <span className="text-xs text-gray-500 font-medium whitespace-nowrap">
+                                    {members === 1 ? 'Member' : 'Members'}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Semester Column Filter */}
             <div className="bg-white rounded-xl shadow p-4 flex flex-col gap-3">

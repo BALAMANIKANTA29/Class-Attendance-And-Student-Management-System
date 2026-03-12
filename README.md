@@ -6,6 +6,7 @@ A comprehensive, responsive web application for managing student attendance reco
 
 ### 📊 Academic Management
 - **Backlogs Tracking**: Detailed view of student backlogs across multiple semesters (1-1 to 3-1).
+- **Distribution Breakdown**: Dynamic summary breakdown showing exactly how many members have 1 backlog, 2 backlogs, etc.
 - **Subject-wise Analysis**: Visualization of backlog counts per subject to identify challenging areas.
 - **Export to Excel**: Generate and download detailed backlog reports for the entire department.
 
