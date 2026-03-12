@@ -47,7 +47,7 @@ export const LoginView = ({ onLogin }) => {
             </div>
             <div className="space-y-1">
               <h1 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-700 to-green-800 tracking-tight">
-                Attendance Portal
+                AID-H Attendance Portal
               </h1>
               <p className="text-gray-500 text-sm font-medium">Administrator Login Only</p>
             </div>

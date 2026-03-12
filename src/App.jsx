@@ -256,7 +256,7 @@ const App = () => {
             <div className="w-10 h-10 bg-indigo-600 rounded-lg flex items-center justify-center">
               <CheckCircle className="w-6 h-6 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-indigo-600">Attendance Portal</h1>
+            <h1 className="text-2xl font-bold text-indigo-600">AID-H Attendance Portal</h1>
           </div>
           <div className="hidden sm:flex items-center space-x-4">
             <span className="text-xs font-semibold px-3 py-1 rounded-full bg-pink-100 text-pink-800">
