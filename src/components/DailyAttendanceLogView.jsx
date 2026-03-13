@@ -636,9 +636,8 @@ export const DailyAttendanceLogView = ({ attendanceHistory, setAttendanceHistory
         <button
           onClick={() => {
             if (window.confirm('Are you sure you want to clear all attendance history? This action cannot be undone.')) {
-              localStorage.removeItem('attendanceHistory');
-              localStorage.removeItem('lastSubmittedReport');
-              window.location.reload();
+              setAttendanceHistory({});
+              alert('Attendance history cleared.');
             }
           }}
           className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-md"

@@ -96,31 +96,40 @@ const App = () => {
 
   React.useEffect(() => {
     // If local storage 'students' is missing backlog properties due to previous reverts, sync them from mock data
-    setStudents(prev => {
-      let changed = false;
-      const merged = prev.map(s => {
-        const mockS = mockClassStudents.find(m => m.id === s.id);
-        if (!mockS) return s;
+      setStudents(prev => {
+        const removedRolls = ['23B21A45C1', '236Q1A4529'];
+        const filtered = prev.filter(s => !removedRolls.includes(s.id || s.roll));
+        let changed = filtered.length !== prev.length;
 
-        const updated = { ...s };
-        // Sync backlogCount if undefined or 0 (assuming mock data has backlogs)
-        if (!updated.backlogCount && mockS.backlogCount) {
+        const merged = filtered.map(s => {
+          const mockS = mockClassStudents.find(m => m.id === s.id);
+          if (!mockS) return s;
+
+          const updated = { ...s };
+          // Sync backlogCount if undefined or 0 (assuming mock data has backlogs)
+          if (!updated.backlogCount && mockS.backlogCount) {
             updated.backlogCount = mockS.backlogCount;
             changed = true;
-        }
+          }
 
-        // Sync sem properties
-        const sems = ['s11', 's12', 's21', 's22', 's31'];
-        for (const sem of sems) {
+          // Sync sem properties
+          const sems = ['s11', 's12', 's21', 's22', 's31'];
+          for (const sem of sems) {
             if (!updated[sem] && mockS[sem]) {
-                updated[sem] = mockS[sem];
-                changed = true;
+              updated[sem] = mockS[sem];
+              changed = true;
             }
-        }
-        return updated;
+          }
+          return updated;
+        });
+        return changed ? merged : prev;
       });
-      return changed ? merged : prev;
-    });
+
+      setStudentInfoData(prev => {
+        const removedRolls = ['23B21A45C1', '236Q1A4529'];
+        const filtered = prev.filter(s => !removedRolls.includes(s.roll));
+        return filtered.length !== prev.length ? filtered : prev;
+      });
   }, []);
 
   const [attendanceHistory, setAttendanceHistory] = useLocalStorage('attendanceHistory', {});

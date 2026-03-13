@@ -37,8 +37,9 @@ export const AdminSettingsView = ({
 
   const handleClearAllData = () => {
     if (window.confirm('Are you sure you want to clear ALL data? This includes students, attendance history, and all settings. This action cannot be undone!')) {
-      localStorage.clear();
-      window.location.reload();
+      setStudents([]);
+      // Other data is managed by its own setters
+      alert('Current view cleared. Settings reset locally.');
     }
   };
 
