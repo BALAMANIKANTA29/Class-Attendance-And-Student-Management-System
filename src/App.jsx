@@ -160,6 +160,8 @@ const App = () => {
     { key: 's31', label: '3-1' },
   ]);
 
+  const [directAccess, setDirectAccess] = useLocalStorage('directAccess', false);
+
   const clearAttendanceHistory = () => {
     setAttendanceHistory({});
     setLastSubmittedReport(null);
@@ -220,6 +222,7 @@ const App = () => {
           <ClassMembersView
             students={students}
             setStudents={setStudents}
+            directAccess={directAccess}
           />
         );
       case 'dailyLog':
@@ -229,6 +232,7 @@ const App = () => {
             setAttendanceHistory={setAttendanceHistory}
             onSelectReport={handleSelectReport}
             userRole="admin"
+            directAccess={directAccess}
           />
         );
       case 'printReport':
@@ -240,11 +244,11 @@ const App = () => {
         );
       case 'backlogs':
         return (
-          <BacklogsView students={students} setStudents={setStudents} semesters={semesters} setSemesters={setSemesters} />
+          <BacklogsView students={students} setStudents={setStudents} semesters={semesters} setSemesters={setSemesters} directAccess={directAccess} />
         );
       case 'subjectWise':
         return (
-          <SubjectWiseView students={students} setStudents={setStudents} semesters={semesters} setSemesters={setSemesters} />
+          <SubjectWiseView students={students} setStudents={setStudents} semesters={semesters} setSemesters={setSemesters} directAccess={directAccess} />
         );
       case 'adminSettings':
         return (
@@ -256,12 +260,14 @@ const App = () => {
             attendancePolicy={attendancePolicy}
             setAttendancePolicy={setAttendancePolicy}
             clearAttendanceHistory={clearAttendanceHistory}
+            directAccess={directAccess}
+            setDirectAccess={setDirectAccess}
           />
         );
       case 'parentDetails':
-        return <ParentDetailsView parentDataOverrides={parentDataOverrides} setParentDataOverrides={setParentDataOverrides} />;
+        return <ParentDetailsView parentDataOverrides={parentDataOverrides} setParentDataOverrides={setParentDataOverrides} directAccess={directAccess} />;
       case 'studentInfo':
-        return <StudentInfoView studentInfoData={studentInfoData} setStudentInfoData={setStudentInfoData} />;
+        return <StudentInfoView studentInfoData={studentInfoData} setStudentInfoData={setStudentInfoData} directAccess={directAccess} />;
       default:
         return (
           <DailyMarkingView

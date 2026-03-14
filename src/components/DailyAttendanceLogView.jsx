@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Calendar, TrendingUp, BarChart3, FileText, Edit2, Save, X, CheckCircle, XCircle, Download } from 'lucide-react';
+import { Calendar, TrendingUp, BarChart3, FileText, Edit2, Save, X, CheckCircle, XCircle, Download, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 // Edit Modal for a single attendance report
@@ -86,7 +86,7 @@ const EditReportModal = ({ report, onSave, onClose }) => {
   );
 };
 
-export const DailyAttendanceLogView = ({ attendanceHistory, setAttendanceHistory, onSelectReport, currentStudent, userRole }) => {
+export const DailyAttendanceLogView = ({ attendanceHistory, setAttendanceHistory, onSelectReport, currentStudent, userRole, directAccess }) => {
   const today = new Date().toISOString().split('T')[0];
   const [reportType, setReportType] = useState('daily');
   const [startDate, setStartDate] = useState(today);
@@ -513,6 +513,27 @@ export const DailyAttendanceLogView = ({ attendanceHistory, setAttendanceHistory
                             className="flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
                           >
                             <Edit2 className="w-3.5 h-3.5" /> Edit
+                          </button>
+                        )}
+                        {directAccess && setAttendanceHistory && (
+                          <button
+                            onClick={() => {
+                              if (window.confirm('Delete this report?')) {
+                                setAttendanceHistory(prev => {
+                                  const dateKey = report.reportDate;
+                                  const dayReports = prev[dateKey] || [];
+                                  const updated = dayReports.filter(r => r.class !== report.class);
+                                  const newHistory = { ...prev };
+                                  if (updated.length === 0) delete newHistory[dateKey];
+                                  else newHistory[dateKey] = updated;
+                                  return newHistory;
+                                });
+                              }
+                            }}
+                            className="flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold transition-colors"
+                            title="Direct Delete"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" /> Delete
                           </button>
                         )}
                       </div>

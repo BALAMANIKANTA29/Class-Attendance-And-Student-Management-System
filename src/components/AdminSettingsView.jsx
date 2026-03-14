@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Settings, Users, Calendar, Target, Database, Save, RefreshCw } from 'lucide-react';
+import { Settings, Users, Calendar, Target, Database, Save, RefreshCw, CheckCircle } from 'lucide-react';
 
 export const AdminSettingsView = ({
   students,
@@ -8,7 +8,9 @@ export const AdminSettingsView = ({
   setClassInfo,
   attendancePolicy,
   setAttendancePolicy,
-  clearAttendanceHistory
+  clearAttendanceHistory,
+  directAccess,
+  setDirectAccess
 }) => {
   const [activeTab, setActiveTab] = useState('students');
   const [isEditingClass, setIsEditingClass] = useState(false);
@@ -344,6 +346,41 @@ export const AdminSettingsView = ({
                     Clear All Data
                   </button>
                 </div>
+              </div>
+
+              <div className="bg-indigo-50 border border-indigo-200 p-6 rounded-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-indigo-600 p-2 rounded-lg">
+                      <Settings className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-indigo-900 text-lg">Direct Access Mode</h4>
+                      <p className="text-indigo-700 text-sm">
+                        Enable universal editing and bypass restrictions across the portal.
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setDirectAccess(!directAccess)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ring-2 ring-indigo-500 ring-offset-2 ${
+                      directAccess ? 'bg-indigo-600' : 'bg-gray-200'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        directAccess ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                </div>
+                {directAccess && (
+                  <div className="mt-4 p-3 bg-white/50 rounded-lg border border-indigo-100 animate-in fade-in slide-in-from-top-1 duration-300">
+                    <p className="text-xs text-indigo-600 font-medium flex items-center">
+                      <CheckCircle className="w-3 h-3 mr-1" /> Universal editing is now ACTIVE. You can edit records directly where available.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

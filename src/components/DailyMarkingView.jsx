@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { UserCheck, ListOrdered, Info, CheckCircle } from 'lucide-react';
 
-export const DailyMarkingView = ({ students, setStudents, onSubmissionSuccess, attendanceHistory }) => {
+export const DailyMarkingView = ({ students, setStudents, onSubmissionSuccess, attendanceHistory, directAccess }) => {
   const [selectedClass, setSelectedClass] = useState('K12AIDHA');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const classList = ['K12AIDHA'];
@@ -15,6 +15,10 @@ export const DailyMarkingView = ({ students, setStudents, onSubmissionSuccess, a
           : student
       )
     );
+  };
+
+  const handleNameChange = (studentId, newName) => {
+    setStudents(prev => prev.map(s => s.id === studentId ? { ...s, name: newName } : s));
   };
 
   const handleSubmit = () => {
@@ -96,7 +100,18 @@ export const DailyMarkingView = ({ students, setStudents, onSubmissionSuccess, a
             {students.map((student) => (
               <tr key={student.id} className="hover:bg-pink-50/50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.id}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{student.name}</td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                  {directAccess ? (
+                    <input
+                      type="text"
+                      value={student.name}
+                      onChange={(e) => handleNameChange(student.id, e.target.value)}
+                      className="bg-transparent border-b border-indigo-200 focus:border-indigo-500 outline-none w-full"
+                    />
+                  ) : (
+                    student.name
+                  )}
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                   <div className="flex justify-end items-center space-x-4">
                     {student.status === 'Present' ? (
@@ -106,12 +121,12 @@ export const DailyMarkingView = ({ students, setStudents, onSubmissionSuccess, a
                     )}
                     <button
                       onClick={() => handleStatusChange(student.id)}
-                      disabled={hasAttendanceForToday}
+                      disabled={hasAttendanceForToday && !directAccess}
                       className={`p-2 rounded-full transition-colors duration-150 ${
                         student.status === 'Present'
                           ? 'bg-pink-600 text-white shadow-md'
                           : 'bg-pink-100 text-pink-600 hover:bg-pink-200'
-                      } ${hasAttendanceForToday ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      } ${hasAttendanceForToday && !directAccess ? 'opacity-50 cursor-not-allowed' : ''}`}
                       title={student.status === 'Present' ? "Unmark Present" : "Mark Present"}
                     >
                       <CheckCircle className="w-5 h-5" />
@@ -128,9 +143,9 @@ export const DailyMarkingView = ({ students, setStudents, onSubmissionSuccess, a
       <div className="flex justify-center pt-4">
         <button
           onClick={handleSubmit}
-          disabled={isSubmitting || hasAttendanceForToday}
+          disabled={isSubmitting || (hasAttendanceForToday && !directAccess)}
           className={`px-8 py-3 rounded-full text-lg font-bold text-white transition-all duration-300 shadow-xl flex items-center justify-center ${
-            !isSubmitting && !hasAttendanceForToday
+            !isSubmitting && (!hasAttendanceForToday || directAccess)
               ? 'bg-pink-600 hover:bg-pink-700 transform hover:scale-105'
               : 'bg-gray-400 cursor-not-allowed'
           }`}
@@ -140,7 +155,7 @@ export const DailyMarkingView = ({ students, setStudents, onSubmissionSuccess, a
               <ListOrdered className="w-5 h-5 mr-2 animate-spin" />
               Submitting...
             </>
-          ) : hasAttendanceForToday ? (
+          ) : (hasAttendanceForToday && !directAccess) ? (
             'Attendance Already Marked for Today'
           ) : (
             `Submit Attendance for ${selectedClass}`

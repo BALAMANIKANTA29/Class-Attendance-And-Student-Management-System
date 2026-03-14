@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Laptop, Search, Download, Mail, Hash, Users, Filter, Edit2, Save, X } from 'lucide-react';
+import { Laptop, Search, Download, Mail, Hash, Users, Filter, Edit2, Save, X, Trash2, Plus } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { studentInfoData as defaultData, teams as defaultTeams } from '../data/studentInfoData';
 
@@ -31,7 +31,7 @@ const colorClass = (c, type) => {
 };
 
 // Edit Modal
-const EditStudentModal = ({ student, teams, onSave, onClose }) => {
+const EditStudentModal = ({ student, teams, onSave, onClose, directAccess }) => {
     const [form, setForm] = useState({ ...student });
     const set = (field, val) => setForm(prev => ({ ...prev, [field]: val }));
 
@@ -58,8 +58,13 @@ const EditStudentModal = ({ student, teams, onSave, onClose }) => {
                         </div>
                         <div>
                             <label className="block text-xs font-semibold text-gray-600 mb-1">Roll No</label>
-                            <input value={form.roll} readOnly
-                                className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500 cursor-not-allowed" />
+                            {directAccess ? (
+                                <input value={form.roll} onChange={e => set('roll', e.target.value)}
+                                    className="w-full px-3 py-2 border border-indigo-300 bg-indigo-50 rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-mono" />
+                            ) : (
+                                <input value={form.roll} readOnly
+                                    className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500 cursor-not-allowed font-mono" />
+                            )}
                         </div>
                         <div>
                             <label className="block text-xs font-semibold text-gray-600 mb-1">Team</label>
@@ -136,7 +141,7 @@ const EditStudentModal = ({ student, teams, onSave, onClose }) => {
     );
 };
 
-export const StudentInfoView = ({ studentInfoData: propData, setStudentInfoData }) => {
+export const StudentInfoView = ({ studentInfoData: propData, setStudentInfoData, directAccess }) => {
     const data = propData || defaultData;
     const teams = useMemo(() => [...new Set(data.map(s => s.team))], [data]);
 
@@ -164,9 +169,48 @@ export const StudentInfoView = ({ studentInfoData: propData, setStudentInfoData 
 
     const handleSave = (updated) => {
         if (setStudentInfoData) {
-            setStudentInfoData(prev => prev.map(s => s.roll === updated.roll ? updated : s));
+            // Find by original roll if we matched before, but we might have changed it
+            // If editing existing, we need to know the original roll to replace it
+            setStudentInfoData(prev => {
+                const index = prev.findIndex(s => s.roll === editingStudent.roll);
+                if (index === -1) return prev; // Should not happen
+                const newList = [...prev];
+                newList[index] = updated;
+                return newList;
+            });
         }
         setEditingStudent(null);
+    };
+
+    const handleDelete = (roll) => {
+        if (window.confirm(`Delete student with Roll No: ${roll}?`)) {
+            setStudentInfoData(prev => prev.filter(s => s.roll !== roll));
+        }
+    };
+
+    const handleAddStudent = () => {
+        const newRoll = prompt('Enter Roll No for new student:');
+        if (!newRoll) return;
+        if (data.find(s => s.roll === newRoll)) {
+            alert('Student with this Roll No already exists!');
+            return;
+        }
+        const newStudent = {
+            roll: newRoll,
+            name: 'New Student',
+            team: teams[0] || 'Team 1',
+            email: '',
+            abcId: '',
+            club: '--',
+            laptop: 'no',
+            phone: '',
+            project: '',
+            parentName: '',
+            p1: '',
+            p2: ''
+        };
+        setStudentInfoData(prev => [...prev, newStudent]);
+        setEditingStudent(newStudent);
     };
 
     const exportToExcel = () => {
@@ -217,6 +261,7 @@ export const StudentInfoView = ({ studentInfoData: propData, setStudentInfoData 
                     teams={teams}
                     onSave={handleSave}
                     onClose={() => setEditingStudent(null)}
+                    directAccess={directAccess}
                 />
             )}
 
@@ -230,6 +275,12 @@ export const StudentInfoView = ({ studentInfoData: propData, setStudentInfoData 
                     <p className="text-sm text-gray-400 mt-1">Teams 1–12 · K1 &amp; K2 · K12AIDHA</p>
                 </div>
                 <div className="flex gap-2 flex-wrap">
+                    {directAccess && (
+                        <button onClick={handleAddStudent}
+                            className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition-all active:scale-95">
+                            <Plus className="w-4 h-4" /> Add Student
+                        </button>
+                    )}
                     <button onClick={exportToExcel}
                         className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition-all active:scale-95">
                         <Download className="w-4 h-4" /> Export All
@@ -341,12 +392,22 @@ export const StudentInfoView = ({ studentInfoData: propData, setStudentInfoData 
                                         </td>
                                         {setStudentInfoData && (
                                             <td className="px-3 py-2 text-center">
-                                                <button
-                                                    onClick={() => setEditingStudent(s)}
-                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
-                                                >
-                                                    <Edit2 className="w-3.5 h-3.5" /> Edit
-                                                </button>
+                                                <div className="flex justify-center gap-1">
+                                                    <button
+                                                        onClick={() => setEditingStudent(s)}
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" /> Edit
+                                                    </button>
+                                                    {directAccess && (
+                                                        <button
+                                                            onClick={() => handleDelete(s.roll)}
+                                                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold transition-colors"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         )}
                                     </tr>
@@ -403,12 +464,22 @@ export const StudentInfoView = ({ studentInfoData: propData, setStudentInfoData 
                                         </td>
                                         {setStudentInfoData && (
                                             <td className="px-4 py-3 text-center">
-                                                <button
-                                                    onClick={() => setEditingStudent(s)}
-                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
-                                                >
-                                                    <Edit2 className="w-3.5 h-3.5" /> Edit
-                                                </button>
+                                                <div className="flex justify-center gap-1">
+                                                    <button
+                                                        onClick={() => setEditingStudent(s)}
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" /> Edit
+                                                    </button>
+                                                    {directAccess && (
+                                                        <button
+                                                            onClick={() => handleDelete(s.roll)}
+                                                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold transition-colors"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         )}
                                     </tr>

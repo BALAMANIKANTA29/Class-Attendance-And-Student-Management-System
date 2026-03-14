@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart2, Download, BookMarked, X, User, ChevronRight } from 'lucide-react';
+import { BarChart2, Download, BookMarked, X, User, ChevronRight, Plus, Trash2, Edit2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const DEFAULT_SEMESTERS = [
@@ -35,26 +35,79 @@ const COLOR_MAP = {
 };
 
 // Modal showing all students who failed a specific subject
-const StudentListModal = ({ subject, students, semesters, onClose }) => {
+const StudentListModal = ({ subject, students, setStudents, semesters, onClose, directAccess }) => {
+    const [isAdding, setIsAdding] = useState(false);
+    const [selectedStudentId, setSelectedStudentId] = useState('');
+    const [selectedSemKey, setSelectedSemKey] = useState(semesters[0]?.key || '');
+
     if (!subject) return null;
 
     // Find students who have this subject in any semester
     const failedStudents = useMemo(() => {
         const result = [];
         students.forEach((s, idx) => {
-            const sems = [];
+            const matchedSems = [];
             semesters.forEach(sem => {
                 const field = s[sem.key];
                 if (field && field.split(',').map(x => x.trim()).includes(subject)) {
-                    sems.push(sem.short);
+                    matchedSems.push({ label: sem.short, key: sem.key });
                 }
             });
-            if (sems.length > 0) {
-                result.push({ sno: idx + 1, id: s.id, name: s.name, sems });
+            if (matchedSems.length > 0) {
+                result.push({ sno: idx + 1, id: s.id, name: s.name, matchedSems });
             }
         });
         return result;
     }, [subject, students, semesters]);
+
+    const handleRemoveSubject = (studentId, semKey) => {
+        if (!window.confirm(`Remove ${subject} from ${studentId} in ${semKey}?`)) return;
+
+        setStudents(prev => prev.map(s => {
+            if (s.id !== studentId) return s;
+            const currentSubs = s[semKey] || '';
+            const updatedSubs = currentSubs.split(',')
+                .map(x => x.trim())
+                .filter(x => x !== subject)
+                .join(',');
+
+            // Recalculate backlogCount
+            const allSemKeys = semesters.map(sem => sem.key);
+            let total = 0;
+            allSemKeys.forEach(k => {
+                const val = (k === semKey ? updatedSubs : s[k]) || '';
+                total += val.split(',').filter(x => x.trim()).length;
+            });
+
+            return { ...s, [semKey]: updatedSubs, backlogCount: total };
+        }));
+    };
+
+    const handleAddStudentSubject = () => {
+        if (!selectedStudentId || !selectedSemKey) return;
+
+        setStudents(prev => prev.map(s => {
+            if (s.id !== selectedStudentId) return s;
+            const currentSubs = s[selectedSemKey] || '';
+            const subsArray = currentSubs.split(',').map(x => x.trim()).filter(Boolean);
+            if (subsArray.includes(subject)) return s;
+
+            const updatedSubs = [...subsArray, subject].join(',');
+
+            // Recalculate backlogCount
+            const allSemKeys = semesters.map(sem => sem.key);
+            let total = 0;
+            allSemKeys.forEach(k => {
+                const val = (k === selectedSemKey ? updatedSubs : s[k]) || '';
+                total += val.split(',').filter(x => x.trim()).length;
+            });
+
+            return { ...s, [selectedSemKey]: updatedSubs, backlogCount: total };
+        }));
+
+        setIsAdding(false);
+        setSelectedStudentId('');
+    };
 
     const exportToExcel = () => {
         const rows = failedStudents.map((s, i) => ({
@@ -63,7 +116,7 @@ const StudentListModal = ({ subject, students, semesters, onClose }) => {
             'Student Name': s.name,
             'Branch': 'AID',
             'Failed Subject': subject,
-            'Semester(s)': s.sems.join(', '),
+            'Semester(s)': s.matchedSems.map(m => m.label).join(', '),
         }));
         const ws = XLSX.utils.json_to_sheet(rows);
         ws['!cols'] = [{ wch: 6 }, { wch: 14 }, { wch: 38 }, { wch: 8 }, { wch: 18 }, { wch: 14 }];
@@ -99,13 +152,74 @@ const StudentListModal = ({ subject, students, semesters, onClose }) => {
                     </div>
                 </div>
 
-                {/* Stats bar */}
-                <div className="px-6 py-3 bg-indigo-50 border-b border-indigo-100 flex items-center gap-6 text-sm">
-                    <span className="font-semibold text-indigo-700">
-                        {failedStudents.length} student{failedStudents.length !== 1 ? 's' : ''} failed <strong>{subject}</strong>
-                    </span>
-                    <span className="text-gray-500 text-xs">Click "Export Excel" to download this list</span>
+                <div className="px-6 py-3 bg-indigo-50 border-b border-indigo-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-sm">
+                    <div className="flex items-center gap-6">
+                        <span className="font-semibold text-indigo-700">
+                            {failedStudents.length} student{failedStudents.length !== 1 ? 's' : ''} failed <strong>{subject}</strong>
+                        </span>
+                        <span className="text-gray-500 text-xs hidden md:block">Click "Export Excel" to download this list</span>
+                    </div>
+                    {directAccess && (
+                        <button
+                            onClick={() => setIsAdding(true)}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold px-4 py-2 rounded-lg transition-transform active:scale-95 flex items-center gap-2 self-start"
+                        >
+                            <Plus className="w-3.5 h-3.5" />
+                            Add Student
+                        </button>
+                    )}
                 </div>
+
+                {/* Add Student Section */}
+                {isAdding && directAccess && (
+                    <div className="px-6 py-4 bg-gray-50 border-b border-gray-200 animate-in slide-in-from-top duration-200">
+                        <div className="flex flex-col sm:flex-row items-end gap-3">
+                            <div className="flex-1">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Select Student</label>
+                                <select
+                                    value={selectedStudentId}
+                                    onChange={e => setSelectedStudentId(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                                >
+                                    <option value="">-- Choose Student --</option>
+                                    {students
+                                        .filter(s => !failedStudents.some(fs => fs.id === s.id))
+                                        .sort((a,b) => a.name.localeCompare(b.name))
+                                        .map(s => (
+                                            <option key={s.id} value={s.id}>{s.name} ({s.id})</option>
+                                        ))}
+                                </select>
+                            </div>
+                            <div className="w-full sm:w-32">
+                                <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Semester</label>
+                                <select
+                                    value={selectedSemKey}
+                                    onChange={e => setSelectedSemKey(e.target.value)}
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                                >
+                                    {semesters.map(sem => (
+                                        <option key={sem.key} value={sem.key}>{sem.short}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setIsAdding(false)}
+                                    className="px-4 py-2 text-gray-500 hover:bg-gray-200 rounded-lg text-xs font-bold"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleAddStudentSubject}
+                                    disabled={!selectedStudentId}
+                                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-xs font-bold"
+                                >
+                                    Add
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* Student List */}
                 <div className="overflow-y-auto flex-1">
@@ -132,9 +246,24 @@ const StudentListModal = ({ subject, students, semesters, onClose }) => {
                                         </td>
                                         <td className="px-5 py-3 text-center">
                                             <div className="flex flex-wrap gap-1 justify-center">
-                                                {s.sems.map(sem => (
-                                                    <span key={sem} className="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full">
-                                                        {sem}
+                                                {s.matchedSems.map(sem => (
+                                                    <span 
+                                                        key={sem.key} 
+                                                        className={`group relative bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded-full flex items-center gap-1 ${directAccess ? 'pr-1' : ''}`}
+                                                    >
+                                                        {sem.label}
+                                                        {directAccess && (
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleRemoveSubject(s.id, sem.key);
+                                                                }}
+                                                                className="opacity-0 group-hover:opacity-100 p-0.5 hover:bg-red-200 text-red-400 hover:text-red-700 rounded-full transition-all"
+                                                                title={`Remove ${subject} from this sem`}
+                                                            >
+                                                                <Trash2 className="w-2.5 h-2.5" />
+                                                            </button>
+                                                        )}
                                                     </span>
                                                 ))}
                                             </div>
@@ -156,12 +285,41 @@ const StudentListModal = ({ subject, students, semesters, onClose }) => {
     );
 };
 
-export const SubjectWiseView = ({ students, semesters: propSemesters }) => {
+export const SubjectWiseView = ({ students, setStudents, semesters: propSemesters, directAccess }) => {
     const SEMESTERS = normalizeSemesters(propSemesters || DEFAULT_SEMESTERS);
     const [activeSem, setActiveSem] = useState('all');
     const [selectedSubject, setSelectedSubject] = useState(null);
 
-    // Build subject count map per semester
+    const [isGlobalAdding, setIsGlobalAdding] = useState(false);
+    const [globalForm, setGlobalForm] = useState({ studentId: '', semKey: SEMESTERS[0]?.key || '', subject: '' });
+
+    const handleGlobalAdd = () => {
+        const { studentId, semKey, subject } = globalForm;
+        if (!studentId || !semKey || !subject.trim()) return;
+
+        setStudents(prev => prev.map(s => {
+            if (s.id !== studentId) return s;
+            const currentSubs = s[semKey] || '';
+            const subsArray = currentSubs.split(',').map(x => x.trim()).filter(Boolean);
+            const newSub = subject.trim().toUpperCase();
+            if (subsArray.includes(newSub)) return s;
+
+            const updatedSubs = [...subsArray, newSub].join(',');
+
+            // Recalculate backlogCount
+            const allSemKeys = SEMESTERS.map(sem => sem.key);
+            let total = 0;
+            allSemKeys.forEach(k => {
+                const val = (k === semKey ? updatedSubs : s[k]) || '';
+                total += val.split(',').filter(x => x.trim()).length;
+            });
+
+            return { ...s, [semKey]: updatedSubs, backlogCount: total };
+        }));
+
+        setIsGlobalAdding(false);
+        setGlobalForm({ studentId: '', semKey: SEMESTERS[0]?.key || '', subject: '' });
+    };
     const semData = useMemo(() => {
         const result = {};
         SEMESTERS.forEach(sem => {
@@ -229,8 +387,10 @@ export const SubjectWiseView = ({ students, semesters: propSemesters }) => {
                 <StudentListModal
                     subject={selectedSubject}
                     students={students}
+                    setStudents={setStudents}
                     semesters={SEMESTERS}
                     onClose={() => setSelectedSubject(null)}
+                    directAccess={directAccess}
                 />
             )}
 
@@ -245,6 +405,15 @@ export const SubjectWiseView = ({ students, semesters: propSemesters }) => {
                 </div>
                 <div className="flex items-center gap-3 flex-wrap">
                     <p className="text-sm text-gray-500 font-medium">Branch: AID &nbsp;|&nbsp; CTPO: Mr. G. Rajendra Babu</p>
+                    {directAccess && (
+                        <button
+                            onClick={() => setIsGlobalAdding(true)}
+                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition-all duration-150"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add New Entry
+                        </button>
+                    )}
                     <button
                         onClick={exportAllToExcel}
                         className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition-all duration-150"
@@ -254,6 +423,73 @@ export const SubjectWiseView = ({ students, semesters: propSemesters }) => {
                     </button>
                 </div>
             </div>
+            
+            {/* Global Add Entry Form */}
+            {isGlobalAdding && directAccess && (
+                <div className="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100 animate-in slide-in-from-top duration-300">
+                    <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                            <BookMarked className="w-5 h-5 text-indigo-600" />
+                            Add New Backlog Entry
+                        </h3>
+                        <button onClick={() => setIsGlobalAdding(false)} className="text-gray-400 hover:text-gray-600">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Student</label>
+                            <select
+                                value={globalForm.studentId}
+                                onChange={e => setGlobalForm(prev => ({ ...prev, studentId: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                            >
+                                <option value="">-- Select Student --</option>
+                                {students.sort((a,b) => a.name.localeCompare(b.name)).map(s => (
+                                    <option key={s.id} value={s.id}>{s.name} ({s.id})</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Semester</label>
+                            <select
+                                value={globalForm.semKey}
+                                onChange={e => setGlobalForm(prev => ({ ...prev, semKey: e.target.value }))}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
+                            >
+                                {SEMESTERS.map(sem => (
+                                    <option key={sem.key} value={sem.key}>{sem.label}</option>
+                                ))}
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-bold text-gray-400 uppercase mb-1">Subject Code</label>
+                            <input
+                                type="text"
+                                value={globalForm.subject}
+                                onChange={e => setGlobalForm(prev => ({ ...prev, subject: e.target.value }))}
+                                placeholder="e.g. PHY, EG, DS"
+                                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm uppercase"
+                            />
+                        </div>
+                    </div>
+                    <div className="flex justify-end gap-3">
+                        <button
+                            onClick={() => setIsGlobalAdding(false)}
+                            className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg text-sm font-semibold"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleGlobalAdd}
+                            disabled={!globalForm.studentId || !globalForm.subject.trim()}
+                            className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-lg text-sm font-semibold shadow-md transition-all"
+                        >
+                            Confirm Addition
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Quick stats */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -420,7 +656,10 @@ export const SubjectWiseView = ({ students, semesters: propSemesters }) => {
                                             <span className="bg-gray-800 text-white text-xs font-bold px-2.5 py-1 rounded-full">{count}</span>
                                         </td>
                                         <td className="px-5 py-3 text-center">
-                                            <span className="text-indigo-600 text-xs font-semibold underline underline-offset-2">View List</span>
+                                            <span className="text-indigo-600 text-xs font-semibold underline underline-offset-2 flex items-center justify-center gap-1 group-hover:text-indigo-800">
+                                                {directAccess ? <Edit2 className="w-3.5 h-3.5" /> : null}
+                                                {directAccess ? 'Edit Data' : 'View List'}
+                                            </span>
                                         </td>
                                     </tr>
                                 ))}

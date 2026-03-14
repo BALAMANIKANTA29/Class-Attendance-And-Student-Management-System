@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Users, Plus, Edit2, Trash2, Save, X } from 'lucide-react';
 
-export const ClassMembersView = ({ students, setStudents }) => {
+export const ClassMembersView = ({ students, setStudents, directAccess }) => {
   const [isAdding, setIsAdding] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [newStudent, setNewStudent] = useState({ id: '', name: '' });
@@ -70,13 +70,15 @@ export const ClassMembersView = ({ students, setStudents }) => {
         <h2 className="text-3xl font-extrabold text-gray-900 flex items-center">
           <Users className="w-7 h-7 mr-2 text-indigo-600" /> Manage Class Members
         </h2>
-        <button
-          onClick={() => setIsAdding(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Add Student
-        </button>
+        {directAccess && (
+          <button
+            onClick={() => setIsAdding(true)}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex items-center transition-colors"
+          >
+            <Plus className="w-5 h-5 mr-2" />
+            Add Student
+          </button>
+        )}
       </div>
 
       {/* Add Student Form */}
@@ -131,7 +133,9 @@ export const ClassMembersView = ({ students, setStudents }) => {
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              {directAccess && (
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -178,24 +182,26 @@ export const ClassMembersView = ({ students, setStudents }) => {
                   <>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.id}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{student.name}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="flex justify-end space-x-2">
-                        <button
-                          onClick={() => handleEditStudent(student)}
-                          className="p-1 text-indigo-600 hover:bg-indigo-100 rounded"
-                          title="Edit"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStudent(student.id)}
-                          className="p-1 text-red-600 hover:bg-red-100 rounded"
-                          title="Delete"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
+                    {directAccess && (
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                            onClick={() => handleEditStudent(student)}
+                            className="p-1 text-indigo-600 hover:bg-indigo-100 rounded"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteStudent(student.id)}
+                            className="p-1 text-red-600 hover:bg-red-100 rounded"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    )}
                   </>
                 )}
               </tr>

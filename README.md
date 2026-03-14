@@ -15,6 +15,11 @@ A comprehensive, responsive web application for managing student attendance reco
 - **Parent Contact Portal**: Searchable database of parent contact details for quick communication.
 - **Student Information**: Management of vital student data including ABC IDs and laptop availability.
 - **Admin Settings**: Configuration for attendance policies and data management.
+- **Direct Access Mode**: A powerful administrative mode that enables universal, real-time editing of:
+    - **Student Records**: Add/delete members and modify Roll Numbers directly.
+    - **Backlog Data**: Manage subject-wise failures and adjust individual counts.
+    - **Attendance Records**: Direct override and deletion of historical reports.
+    - **Contact Info**: Real-time updates to parent and student details.
 
 ### 📋 Attendance Log
 - **Historical Records**: Review and filter past attendance reports by date.

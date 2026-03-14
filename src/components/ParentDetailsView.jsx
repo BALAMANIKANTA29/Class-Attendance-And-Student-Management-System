@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Users, Search, Download, Phone, Edit2, Save, X } from 'lucide-react';
+import { Users, Search, Download, Phone, Edit2, Save, X, Plus, Trash2 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 
 const defaultParentData = [
@@ -86,7 +86,7 @@ const PhoneCell = ({ number }) => {
 };
 
 // Edit Modal for Parent Details
-const EditParentModal = ({ record, onSave, onClose }) => {
+const EditParentModal = ({ record, onSave, onClose, directAccess }) => {
     const [form, setForm] = useState({ ...record });
     const set = (field, val) => setForm(prev => ({ ...prev, [field]: val }));
 
@@ -113,8 +113,13 @@ const EditParentModal = ({ record, onSave, onClose }) => {
                         </div>
                         <div>
                             <label className="block text-xs font-semibold text-gray-600 mb-1">HNO (Roll No)</label>
-                            <input value={form.hno} readOnly
-                                className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500 cursor-not-allowed" />
+                            {directAccess ? (
+                                <input value={form.hno} onChange={e => set('hno', e.target.value)}
+                                    className="w-full px-3 py-2 border border-indigo-300 bg-indigo-50 rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-mono" />
+                            ) : (
+                                <input value={form.hno} readOnly
+                                    className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500 cursor-not-allowed font-mono" />
+                            )}
                         </div>
                         <div>
                             <label className="block text-xs font-semibold text-gray-600 mb-1">Student Contact</label>
@@ -161,7 +166,7 @@ const EditParentModal = ({ record, onSave, onClose }) => {
     );
 };
 
-export const ParentDetailsView = ({ parentDataOverrides = {}, setParentDataOverrides }) => {
+export const ParentDetailsView = ({ parentDataOverrides = {}, setParentDataOverrides, directAccess }) => {
     const parentData = useMemo(() =>
         defaultParentData.map(r => parentDataOverrides[r.hno] ? { ...r, ...parentDataOverrides[r.hno] } : r),
         [parentDataOverrides]
@@ -185,9 +190,46 @@ export const ParentDetailsView = ({ parentDataOverrides = {}, setParentDataOverr
 
     const handleSave = (updated) => {
         if (setParentDataOverrides) {
-            setParentDataOverrides(prev => ({ ...prev, [updated.hno]: updated }));
+            setParentDataOverrides(prev => {
+                const newData = { ...prev };
+                // If hno changed, remove the old one
+                if (editingRecord.hno !== updated.hno) {
+                    delete newData[editingRecord.hno];
+                }
+                newData[updated.hno] = updated;
+                return newData;
+            });
         }
         setEditingRecord(null);
+    };
+
+    const handleDelete = (hno) => {
+        if (window.confirm(`Remove overrides for ${hno}?`)) {
+            setParentDataOverrides(prev => {
+                const newData = { ...prev };
+                delete newData[hno];
+                return newData;
+            });
+        }
+    };
+
+    const handleAddRecord = () => {
+        const roll = prompt('Enter Roll No for new parent record override:');
+        if (!roll) return;
+        const newRecord = {
+            hno: roll,
+            name: '',
+            classId: 'K12AIDHA',
+            staying: 'CLG HOSTEL',
+            dept: 45,
+            bCode: 'AID',
+            stContact: '',
+            parentNames: '',
+            p1: '',
+            p2: ''
+        };
+        setParentDataOverrides(prev => ({ ...prev, [roll]: newRecord }));
+        setEditingRecord(newRecord);
     };
 
     const exportToExcel = () => {
@@ -221,6 +263,7 @@ export const ParentDetailsView = ({ parentDataOverrides = {}, setParentDataOverr
                     record={editingRecord}
                     onSave={handleSave}
                     onClose={() => setEditingRecord(null)}
+                    directAccess={directAccess}
                 />
             )}
 
@@ -233,13 +276,21 @@ export const ParentDetailsView = ({ parentDataOverrides = {}, setParentDataOverr
                     </h2>
                     <p className="text-sm text-gray-400 mt-1">Branch: AID &nbsp;|&nbsp; Class: K12AIDHA &nbsp;|&nbsp; CTPO: Mr. G. Rajendra Babu</p>
                 </div>
-                <button
-                    onClick={exportToExcel}
-                    className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition-all duration-150"
-                >
-                    <Download className="w-4 h-4" />
-                    Export to Excel
-                </button>
+                <div className="flex gap-2 flex-wrap">
+                    {directAccess && (
+                        <button onClick={handleAddRecord}
+                            className="flex items-center gap-2 bg-pink-600 hover:bg-pink-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition-all active:scale-95">
+                            <Plus className="w-4 h-4" /> Add Record
+                        </button>
+                    )}
+                    <button
+                        onClick={exportToExcel}
+                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 active:scale-95 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow transition-all duration-150"
+                    >
+                        <Download className="w-4 h-4" />
+                        Export to Excel
+                    </button>
+                </div>
             </div>
 
             {/* Summary Cards */}
@@ -308,12 +359,23 @@ export const ParentDetailsView = ({ parentDataOverrides = {}, setParentDataOverr
                                     </td>
                                     {setParentDataOverrides && (
                                         <td className="px-3 py-3 text-center">
-                                            <button
-                                                onClick={() => setEditingRecord(s)}
-                                                className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
-                                            >
-                                                <Edit2 className="w-3.5 h-3.5" /> Edit
-                                            </button>
+                                            <div className="flex justify-center gap-1">
+                                                <button
+                                                    onClick={() => setEditingRecord(s)}
+                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
+                                                >
+                                                    <Edit2 className="w-3.5 h-3.5" /> Edit
+                                                </button>
+                                                {directAccess && parentDataOverrides[s.hno] && (
+                                                    <button
+                                                        onClick={() => handleDelete(s.hno)}
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold transition-colors"
+                                                        title="Remove Overrides"
+                                                    >
+                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </td>
                                     )}
                                 </tr>

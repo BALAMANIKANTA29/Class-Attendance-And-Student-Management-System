@@ -159,7 +159,9 @@ const ColumnManagerModal = ({ semesters, onAdd, onDelete, onClose }) => {
 };
 
 // ── Edit Backlog Modal ─────────────────────────────────────────────
-const EditBacklogModal = ({ student, semesters, onSave, onClose }) => {
+const EditBacklogModal = ({ student, semesters, onSave, onClose, directAccess }) => {
+    const [id, setId] = useState(student.id);
+    const [name, setName] = useState(student.name);
     const [form, setForm] = useState(() => {
         const init = {};
         semesters.forEach(s => { init[s.key] = student[s.key] || ''; });
@@ -175,7 +177,7 @@ const EditBacklogModal = ({ student, semesters, onSave, onClose }) => {
     }, [form, semesters]);
 
     const handleSave = () => {
-        onSave({ ...student, ...form, backlogCount: computedCount });
+        onSave({ ...student, id, name, ...form, backlogCount: computedCount });
     };
 
     return (
@@ -193,6 +195,29 @@ const EditBacklogModal = ({ student, semesters, onSave, onClose }) => {
                 </div>
 
                 <div className="p-6 overflow-y-auto flex-1 space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">Roll No</label>
+                            {directAccess ? (
+                                <input value={id} onChange={e => setId(e.target.value)}
+                                    className="w-full px-3 py-2 border border-indigo-300 bg-indigo-50 rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none font-mono" />
+                            ) : (
+                                <input value={id} readOnly
+                                    className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500 cursor-not-allowed font-mono" />
+                            )}
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-gray-600 mb-1">Name</label>
+                            {directAccess ? (
+                                <input value={name} onChange={e => setName(e.target.value)}
+                                    className="w-full px-3 py-2 border border-indigo-300 bg-indigo-50 rounded-lg text-sm focus:ring-2 focus:ring-indigo-400 outline-none" />
+                            ) : (
+                                <input value={name} readOnly
+                                    className="w-full px-3 py-2 border border-gray-200 bg-gray-50 rounded-lg text-sm text-gray-500 cursor-not-allowed" />
+                            )}
+                        </div>
+                    </div>
+
                     <p className="text-sm text-gray-500">
                         Update backlog subjects or general details. For backlogs, use comma-separated values (e.g. PHY,EG).
                     </p>
@@ -235,7 +260,7 @@ const EditBacklogModal = ({ student, semesters, onSave, onClose }) => {
 };
 
 // ── Main BacklogsView ──────────────────────────────────────────────
-export const BacklogsView = ({ students, setStudents, semesters: propSemesters, setSemesters }) => {
+export const BacklogsView = ({ students, setStudents, semesters: propSemesters, setSemesters, directAccess }) => {
     const semesters = propSemesters || DEFAULT_SEMESTERS;
 
     const [search, setSearch] = useState('');
@@ -316,9 +341,15 @@ export const BacklogsView = ({ students, setStudents, semesters: propSemesters, 
 
     const handleSaveEdit = (updated) => {
         if (setStudents) {
-            setStudents(prev => prev.map(s => s.id === updated.id ? { ...s, ...updated } : s));
+            setStudents(prev => prev.map(s => s.id === editingStudent.id ? updated : s));
         }
         setEditingStudent(null);
+    };
+
+    const handleDeleteStudent = (id) => {
+        if (window.confirm(`Delete student ${id} from backlog records?`)) {
+            setStudents(prev => prev.filter(s => s.id !== id));
+        }
     };
 
     const exportToExcel = () => {
@@ -361,6 +392,7 @@ export const BacklogsView = ({ students, setStudents, semesters: propSemesters, 
                     semesters={semesters}
                     onSave={handleSaveEdit}
                     onClose={() => setEditingStudent(null)}
+                    directAccess={directAccess}
                 />
             )}
             {showSemesterManager && (
@@ -592,12 +624,22 @@ export const BacklogsView = ({ students, setStudents, semesters: propSemesters, 
                                         ))}
                                         {setStudents && (
                                             <td className="px-4 py-3 text-center">
-                                                <button
-                                                    onClick={() => setEditingStudent(student)}
-                                                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
-                                                >
-                                                    <Edit2 className="w-3.5 h-3.5" /> Edit
-                                                </button>
+                                                <div className="flex justify-center gap-1">
+                                                    <button
+                                                        onClick={() => setEditingStudent(student)}
+                                                        className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-lg text-xs font-semibold transition-colors"
+                                                    >
+                                                        <Edit2 className="w-3.5 h-3.5" /> Edit
+                                                    </button>
+                                                    {directAccess && (
+                                                        <button
+                                                            onClick={() => handleDeleteStudent(student.id)}
+                                                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg text-xs font-semibold transition-colors"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </td>
                                         )}
                                     </tr>
